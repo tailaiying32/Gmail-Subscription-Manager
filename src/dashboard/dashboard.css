@@ -2,7 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+@layer base {
+  * { box-sizing: border-box; }
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    background-color: #FAFBFE;
+    color: #1A1B1E;
+    font-family: 'Roboto', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* MD3 state layer */
+@layer components {
+  .md3-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+  .md3-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    border-radius: inherit;
+    transition: opacity 200ms;
+  }
+  .md3-ripple:hover::after { opacity: 0.08; }
+  .md3-ripple:active::after { opacity: 0.12; }
 }

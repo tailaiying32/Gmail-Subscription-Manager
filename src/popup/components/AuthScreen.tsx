@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, Icon } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';
 
 export function AuthScreen() {
@@ -14,33 +15,41 @@ export function AuthScreen() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 p-8 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-        <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
+    <div className="flex flex-col items-center px-6 py-8 gap-6 text-center bg-surface">
+      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-primary-container">
+        <Icon name="mark_email_unread" size={36} filled className="text-primary" />
       </div>
 
-      <div>
-        <h1 className="text-lg font-semibold text-gray-900">Gmail Subscription Manager</h1>
-        <p className="mt-1 text-sm text-gray-500">Find and remove email subscriptions you no longer want.</p>
+      <div className="space-y-1.5">
+        <h1 className="text-title-lg text-surface-on">Gmail Subscription Manager</h1>
+        <p className="text-body-md text-surface-on-variant">
+          Find and remove email subscriptions you no longer want.
+        </p>
       </div>
 
-      <ul className="w-full space-y-2 text-left text-sm text-gray-600">
-        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> No data sent to external servers</li>
-        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Read-only until you take action</li>
-        <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Revoke access anytime in Google settings</li>
-      </ul>
+      {/* Privacy list — tonal surface, no border */}
+      <div className="w-full rounded-xl bg-surface-container-low p-4 space-y-3 text-left">
+        {[
+          ['privacy_tip',    'No data sent to external servers'        ],
+          ['visibility_off', 'Read-only until you take action'         ],
+          ['key_off',        'Revoke access anytime in Google settings'],
+        ].map(([icon, text]) => (
+          <div key={text} className="flex items-center gap-3">
+            <Icon name={icon} size={18} className="text-primary shrink-0" />
+            <span className="text-body-sm text-surface-on-variant">{text}</span>
+          </div>
+        ))}
+      </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && (
+        <div className="w-full rounded-xl bg-error-container px-4 py-3 text-body-sm text-error-on-container">
+          {error}
+        </div>
+      )}
 
-      <button
-        onClick={handleSignIn}
-        disabled={loading}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-      >
+      <Button variant="filled" icon={loading ? undefined : 'login'} onClick={handleSignIn} disabled={loading} className="w-full">
         {loading ? 'Signing in…' : 'Sign in with Google'}
-      </button>
+      </Button>
     </div>
   );
 }

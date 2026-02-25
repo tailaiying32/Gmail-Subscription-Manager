@@ -8,11 +8,9 @@ export function App() {
   const { isAuthenticated, isScanning, hasScanData, auth, scanProgress, activeSubscriptions } =
     useSubscriptions();
 
-  if (!isAuthenticated) {
-    return <AuthScreen />;
-  }
+  if (!isAuthenticated) return <AuthScreen />;
 
-  if (!hasScanData || isScanning) {
+  if (isScanning || !hasScanData) {
     return (
       <ScanStatus
         userEmail={auth?.userEmail ?? ''}

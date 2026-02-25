@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { ScanProgress } from '../../shared/types';
+import { Button, Icon, LinearProgress, IconButton } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';
 
 interface Props {
@@ -7,6 +8,13 @@ interface Props {
   scanProgress: ScanProgress | null;
   isScanning: boolean;
 }
+
+const phaseLabel: Record<string, string> = {
+  listing: 'Finding subscriptions…',
+  fetching: 'Reading email headers…',
+  parsing: 'Grouping results…',
+  done: 'Almost done…',
+};
 
 export function ScanStatus({ userEmail, scanProgress, isScanning }: Props) {
   const [starting, setStarting] = useState(false);
@@ -22,44 +30,71 @@ export function ScanStatus({ userEmail, scanProgress, isScanning }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600 truncate">{userEmail}</span>
-        <button onClick={handleSignOut} className="text-xs text-gray-400 hover:text-gray-600">
-          Sign out
-        </button>
+    <div className="flex flex-col h-full">
+      {/* Top app bar */}
+      <div className="flex items-center justify-between px-4 py-3 bg-surface-1">
+        <div className="flex items-center gap-3">
+          <Icon name="mark_email_unread" size={20} filled className="text-primary" />
+          <span className="text-title-sm text-surface-on truncate max-w-[200px]">{userEmail}</span>
+        </div>
+        <IconButton icon="logout" label="Sign out" onClick={handleSignOut} />
       </div>
 
-      {isScanning && scanProgress ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-700">Scanning…</span>
-            <span className="text-gray-500 capitalize">{scanProgress.phase}</span>
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-6">
+        {isScanning && scanProgress ? (
+          <div className="w-full space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center animate-pulse">
+                <Icon name="radar" size={20} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-title-sm text-surface-on">Scanning inbox</p>
+                <p className="text-body-sm text-surface-on-variant">
+                  {phaseLabel[scanProgress.phase] ?? 'Processing…'}
+                </p>
+              </div>
+            </div>
+
+            <LinearProgress value={scanProgress.percentComplete} />
+
+            <div className="flex justify-between text-label-md text-surface-on-variant">
+              <span>{scanProgress.processed.toLocaleString()} processed</span>
+              <span>{scanProgress.percentComplete}%</span>
+            </div>
+
+            {scanProgress.totalFound > 0 && (
+              <div className="rounded-lg bg-secondary-container px-4 py-3 flex items-center gap-2">
+                <Icon name="inbox" size={16} className="text-secondary-on-container" />
+                <span className="text-body-sm text-secondary-on-container">
+                  Found <strong>{scanProgress.totalFound.toLocaleString()}</strong> emails to check
+                </span>
+              </div>
+            )}
           </div>
-          <div className="h-2 w-full rounded-full bg-gray-200">
-            <div
-              className="h-2 rounded-full bg-blue-500 transition-all"
-              style={{ width: `${scanProgress.percentComplete}%` }}
-            />
+        ) : (
+          <div className="text-center space-y-6">
+            <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-full bg-primary-container">
+              <Icon name="manage_search" size={40} className="text-primary" />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-title-md text-surface-on">Ready to scan</p>
+              <p className="text-body-md text-surface-on-variant max-w-[240px]">
+                Looks for emails with unsubscribe options in your inbox.
+              </p>
+            </div>
+            <Button
+              variant="filled"
+              icon={starting ? undefined : 'search'}
+              onClick={handleScan}
+              disabled={starting}
+              className="w-full"
+            >
+              {starting ? 'Starting…' : 'Scan My Inbox'}
+            </Button>
           </div>
-          <p className="text-xs text-gray-500">
-            {scanProgress.processed} / {scanProgress.totalFound} messages processed
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-4 py-6 text-center">
-          <p className="text-sm text-gray-500">
-            No scan data yet. Scanning looks at your inbox for emails with unsubscribe options.
-          </p>
-          <button
-            onClick={handleScan}
-            disabled={starting}
-            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-          >
-            {starting ? 'Starting…' : 'Scan My Inbox'}
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

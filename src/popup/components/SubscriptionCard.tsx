@@ -1,94 +1,89 @@
 import React, { useState } from 'react';
 import type { Subscription } from '../../shared/types';
+import { Icon, Button, StatusChip } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';
 
-interface Props {
-  subscription: Subscription;
-}
+interface Props { subscription: Subscription }
 
 function timeAgo(ms: number): string {
   const diff = Date.now() - ms;
-  const hours = Math.floor(diff / 3_600_000);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  const h = Math.floor(diff / 3_600_000);
+  if (h < 1) return 'just now';
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return d < 30 ? `${d}d ago` : `${Math.floor(d / 30)}mo ago`;
 }
 
+const categoryIcon: Record<string, string> = {
+  newsletter: 'newspaper', marketing: 'sell', notification: 'notifications', other: 'mail',
+};
+
 export function SubscriptionCard({ subscription: sub }: Props) {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [toast, setToast] = useState<string | null>(null);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  }
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
 
   async function handleUnsubscribe() {
-    setStatus('loading');
+    setState('loading');
     const res = await sendMessage({ type: 'UNSUBSCRIBE_EXECUTE', payload: { subscriptionId: sub.id } });
-    if (res.success) {
-      setStatus('done');
-      showToast('Unsubscribed successfully');
-    } else {
-      setStatus('error');
-      showToast(`Failed: ${res.error}`);
-    }
+    if (res.success) { setState('done'); }
+    else { setState('error'); showToast(res.error ?? 'Failed'); setTimeout(() => setState('idle'), 3000); }
   }
 
   async function handleArchive() {
     const res = await sendMessage({ type: 'ARCHIVE_ALL', payload: { subscriptionId: sub.id } });
-    showToast(res.success ? 'All emails archived' : `Failed: ${res.error}`);
+    showToast(res.success ? 'Archived' : `Failed: ${res.error}`);
   }
 
   async function handleKeep() {
     await sendMessage({ type: 'WHITELIST_ADD', payload: { subscriptionId: sub.id } });
-    showToast('Added to keep list');
+    setState('done');
   }
 
-  if (status === 'done') return null;
+  if (state === 'done') return null;
 
   return (
-    <div className={`border-b border-gray-100 p-3 ${status === 'loading' ? 'opacity-50' : ''}`}>
-      <div className="flex items-start gap-3">
-        <img
-          src={sub.faviconUrl}
-          alt=""
-          className="mt-0.5 h-6 w-6 rounded"
-          onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
-        />
+    // Elevated card: surface-container-low + shadow — no border
+    <div className={`mx-3 mb-2 rounded-xl bg-surface-container-low overflow-hidden transition-opacity ${state === 'loading' ? 'opacity-50' : ''}`}>
+      <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+        {/* Favicon in primary container circle */}
+        <div className="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center shrink-0 overflow-hidden">
+          <img src={sub.faviconUrl} alt="" className="h-6 w-6 object-contain"
+            onError={(e) => {
+              const el = e.target as HTMLImageElement;
+              el.style.display = 'none';
+              el.parentElement!.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;color:#1A6DD4">${categoryIcon[sub.category] ?? 'mail'}</span>`;
+            }}
+          />
+        </div>
+
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <span className="truncate text-sm font-medium text-gray-900">{sub.senderName}</span>
-            <span className="shrink-0 text-xs text-gray-400">{sub.emailCount} emails</span>
-          </div>
-          <p className="text-xs text-gray-400">last {timeAgo(sub.lastReceived)}</p>
+          <p className="text-title-sm text-surface-on truncate">{sub.senderName}</p>
+          <p className="text-body-sm text-surface-on-variant truncate">{sub.senderEmail}</p>
+        </div>
+
+        <div className="text-right shrink-0">
+          <p className="text-label-lg font-medium text-surface-on">{sub.emailCount}</p>
+          <p className="text-label-sm text-surface-on-variant">emails</p>
         </div>
       </div>
 
-      <div className="mt-2 flex gap-2">
-        <button
-          onClick={handleUnsubscribe}
-          disabled={status === 'loading'}
-          className="rounded bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
-        >
-          Unsubscribe
-        </button>
-        <button
-          onClick={handleArchive}
-          className="rounded bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
-        >
-          Archive All
-        </button>
-        <button
-          onClick={handleKeep}
-          className="rounded bg-green-50 px-2.5 py-1 text-xs font-medium text-green-600 hover:bg-green-100"
-        >
-          Keep
-        </button>
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <StatusChip label={sub.category} color={sub.category === 'newsletter' ? 'blue' : sub.category === 'marketing' ? 'red' : 'gray'} />
+        <span className="text-body-sm text-surface-on-variant">· {timeAgo(sub.lastReceived)}</span>
+      </div>
+
+      <div className="flex gap-2 px-3 pb-3">
+        <Button variant="filled"   onClick={handleUnsubscribe} disabled={state === 'loading'} className="flex-1 py-1.5 text-label-md">Unsubscribe</Button>
+        <Button variant="tonal"    onClick={handleArchive}     className="flex-1 py-1.5 text-label-md">Archive</Button>
+        <Button variant="text"     onClick={handleKeep}        className="flex-1 py-1.5 text-label-md">Keep</Button>
       </div>
 
       {toast && (
-        <p className="mt-1.5 text-xs text-gray-500">{toast}</p>
+        <div className={`px-4 py-2 text-body-sm ${state === 'error' ? 'bg-error-container text-error-on-container' : 'bg-secondary-container text-secondary-on-container'}`}>
+          {toast}
+        </div>
       )}
     </div>
   );
