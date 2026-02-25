@@ -15,12 +15,14 @@ export async function upsertSubscription(sub: Subscription): Promise<void> {
   const existing = all[sub.id];
 
   if (existing) {
+    const mergedMessageIds = [...new Set([...existing.messageIds, ...sub.messageIds])];
+    const newMessageCount = mergedMessageIds.length - existing.messageIds.length;
     all[sub.id] = {
       ...existing,
-      emailCount: existing.emailCount + sub.emailCount,
+      emailCount: existing.emailCount + newMessageCount,
       lastReceived: Math.max(existing.lastReceived, sub.lastReceived),
       firstSeen: Math.min(existing.firstSeen, sub.firstSeen),
-      messageIds: [...new Set([...existing.messageIds, ...sub.messageIds])],
+      messageIds: mergedMessageIds,
       // Preserve user-set status (don't overwrite 'whitelisted' or 'unsubscribed')
       status: existing.status === 'active' ? sub.status : existing.status,
       unsubscribeOptions: sub.unsubscribeOptions,

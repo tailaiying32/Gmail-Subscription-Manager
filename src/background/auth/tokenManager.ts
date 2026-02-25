@@ -1,6 +1,6 @@
 import type { CachedToken, TokenInfo } from '@shared/types';
 import { TOKEN_INFO_URL, TOKEN_EXPIRY_BUFFER_MS } from '@shared/constants';
-import { SESSION_KEYS } from '@shared/messages';
+import { SESSION_KEYS, STORAGE_KEYS } from '@shared/messages';
 
 function isTokenExpired(cached: CachedToken): boolean {
   return Date.now() >= cached.expiresAt - TOKEN_EXPIRY_BUFFER_MS;
@@ -65,7 +65,7 @@ export async function revokeToken(): Promise<void> {
     );
   }
   await chrome.storage.session.clear();
-  await chrome.storage.local.clear();
+  await chrome.storage.local.remove([STORAGE_KEYS.AUTH, STORAGE_KEYS.SCAN_PROGRESS]);
 }
 
 export async function getAuthenticatedEmail(): Promise<string | null> {

@@ -58,11 +58,23 @@ export class GmailClient {
   }
 
   async getHistory(startHistoryId: string): Promise<{ history?: GmailHistory[]; historyId: string }> {
-    const query = new URLSearchParams({
-      startHistoryId,
-      historyTypes: 'messageAdded',
-    });
-    return this.fetch(`/history?${query}`);
+    const allHistory: GmailHistory[] = [];
+    let pageToken: string | undefined;
+    let latestHistoryId = startHistoryId;
+
+    do {
+      const query = new URLSearchParams({
+        startHistoryId,
+        historyTypes: 'messageAdded',
+        ...(pageToken ? { pageToken } : {}),
+      });
+      const res = await this.fetch<{ history?: GmailHistory[]; historyId: string; nextPageToken?: string }>(`/history?${query}`);
+      if (res.history) allHistory.push(...res.history);
+      latestHistoryId = res.historyId;
+      pageToken = res.nextPageToken;
+    } while (pageToken);
+
+    return { history: allHistory.length > 0 ? allHistory : undefined, historyId: latestHistoryId };
   }
 
   async modifyMessage(

@@ -13,14 +13,16 @@ async function saveResult(result: UnsubscribeResult): Promise<void> {
 }
 
 async function httpUnsubscribe(url: string, isOneClick: boolean): Promise<void> {
-  if (isOneClick) {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'List-Unsubscribe=One-Click',
-    });
-  } else {
-    await fetch(url, { method: 'GET' });
+  const res = isOneClick
+    ? await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'List-Unsubscribe=One-Click',
+      })
+    : await fetch(url, { method: 'GET' });
+
+  if (!res.ok) {
+    throw new Error(`Unsubscribe request failed with status ${res.status}`);
   }
 }
 

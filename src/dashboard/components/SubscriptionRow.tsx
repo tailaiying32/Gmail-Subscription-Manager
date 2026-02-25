@@ -24,6 +24,7 @@ export function SubscriptionRow({ subscription: sub }: Props) {
   const { selectedIds, toggleSelected, openDetail, optimisticUpdate } = useDashboardStore();
   const isSelected = selectedIds.has(sub.id);
   const [loading, setLoading] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   async function handleUnsubscribe(e: React.MouseEvent) {
     e.stopPropagation();
@@ -66,14 +67,14 @@ export function SubscriptionRow({ subscription: sub }: Props) {
 
       {/* Favicon in tonal container */}
       <div className="h-9 w-9 rounded-full bg-primary-container flex items-center justify-center shrink-0 overflow-hidden">
-        <img
-          src={sub.faviconUrl} alt="" className="h-5 w-5 object-contain"
-          onError={(e) => {
-            const el = e.target as HTMLImageElement;
-            el.style.display = 'none';
-            el.parentElement!.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px;color:#1A6DD4">${categoryIcon[sub.category] ?? 'mail'}</span>`;
-          }}
-        />
+        {imgError ? (
+          <Icon name={categoryIcon[sub.category] ?? 'mail'} size={18} className="text-primary" />
+        ) : (
+          <img
+            src={sub.faviconUrl} alt="" className="h-5 w-5 object-contain"
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
 
       {/* Sender info */}
@@ -103,7 +104,7 @@ export function SubscriptionRow({ subscription: sub }: Props) {
 
       {/* Hover actions */}
       <div
-        className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity w-24 justify-end shrink-0"
+        className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity w-24 justify-end shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={handleUnsubscribe} title="Unsubscribe"

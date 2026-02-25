@@ -4,18 +4,23 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  body {
+  html, body {
     width: 380px;
     min-height: 200px;
     max-height: 600px;
     margin: 0;
-    background-color: #FAFBFE;
+    padding: 0;
+    background: transparent;
     color: #1A1B1E;
-    font-family: 'Roboto', system-ui, sans-serif;
+    font-family: 'Google Sans', 'Google Sans Text', 'Product Sans', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
   }
-  #root { width: 380px; }
+  #root {
+    width: 380px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #FAFBFE;
+  }
 }
 
 /* MD3 state layer ripple */

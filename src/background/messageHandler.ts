@@ -5,8 +5,10 @@ import { GmailClient } from './gmail/gmailClient';
 import { Scanner } from './gmail/scanner';
 import { executeUnsubscribe } from './actions/unsubscribe';
 import { archiveAll } from './actions/archive';
-import { updateStatus, getAllSubscriptions } from './subscriptions/store';
+import { updateStatus } from './subscriptions/store';
 import { STORAGE_KEYS } from '@shared/messages';
+
+let activeScan: Promise<void> | null = null;
 
 function makeClient(): GmailClient {
   return new GmailClient(() =>
@@ -40,14 +42,15 @@ export async function handleMessage(
       }
 
       case 'SCAN_START': {
+        if (activeScan) {
+          return { success: false, error: 'Scan already in progress' };
+        }
         const client = makeClient();
         const scanner = new Scanner(client);
-        // Run in background — don't await
-        if (message.payload.fullScan) {
-          scanner.startFullScan();
-        } else {
-          scanner.startIncrementalSync();
-        }
+        const scanPromise = message.payload.fullScan
+          ? scanner.startFullScan()
+          : scanner.startIncrementalSync();
+        activeScan = scanPromise.finally(() => { activeScan = null; });
         return { success: true, data: undefined };
       }
 

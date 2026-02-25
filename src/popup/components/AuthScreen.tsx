@@ -9,9 +9,14 @@ export function AuthScreen() {
   async function handleSignIn() {
     setLoading(true);
     setError(null);
-    const res = await sendMessage({ type: 'AUTH_GET_TOKEN', payload: { interactive: true } });
-    if (!res.success) setError(res.error);
-    setLoading(false);
+    try {
+      const res = await sendMessage({ type: 'AUTH_GET_TOKEN', payload: { interactive: true } });
+      if (!res.success) setError(res.error ?? 'Sign-in failed');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign-in failed');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

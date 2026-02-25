@@ -17,6 +17,7 @@ export function useSubscriptions() {
     auth,
     isAuthenticated: auth?.isAuthenticated ?? false,
     isScanning: scanProgress?.status === 'scanning',
-    hasScanData: scanProgress?.status === 'complete' || scanProgress?.status === 'error',
+    hasScanData: scanProgress?.status === 'complete',
+    scanError: scanProgress?.status === 'error' ? scanProgress.error : null,
   };
 }

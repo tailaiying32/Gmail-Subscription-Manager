@@ -1,10 +1,6 @@
 import type { ExtensionMessage } from '@shared/messages';
 import { handleMessage } from './messageHandler';
 import { registerAlarms } from './alarms';
-import { GmailClient } from './gmail/gmailClient';
-import { Scanner } from './gmail/scanner';
-import { getAccessToken } from './auth/tokenManager';
-import { getAllSubscriptions } from './subscriptions/store';
 import { STORAGE_KEYS } from '@shared/messages';
 
 // ─── Message listener ─────────────────────────────────────────────────────────
@@ -19,14 +15,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 // ─── Alarm registration on SW startup ────────────────────────────────────────
-const client = new GmailClient(() =>
-  getAccessToken(false).then((t) => {
-    if (!t) throw new Error('Not authenticated');
-    return t;
-  })
-);
-const scanner = new Scanner(client);
-registerAlarms(scanner);
+registerAlarms();
 
 // ─── Badge count ──────────────────────────────────────────────────────────────
 chrome.storage.onChanged.addListener((changes, area) => {

@@ -21,8 +21,11 @@ export function ScanStatus({ userEmail, scanProgress, isScanning }: Props) {
 
   async function handleScan() {
     setStarting(true);
-    await sendMessage({ type: 'SCAN_START', payload: { fullScan: true } });
-    setStarting(false);
+    try {
+      await sendMessage({ type: 'SCAN_START', payload: { fullScan: true } });
+    } finally {
+      setStarting(false);
+    }
   }
 
   async function handleSignOut() {
@@ -74,13 +77,15 @@ export function ScanStatus({ userEmail, scanProgress, isScanning }: Props) {
           </div>
         ) : (
           <div className="text-center space-y-6">
-            <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-full bg-primary-container">
-              <Icon name="manage_search" size={40} className="text-primary" />
+            <div className={`flex h-20 w-20 mx-auto items-center justify-center rounded-full ${scanProgress?.status === 'error' ? 'bg-error-container' : 'bg-primary-container'}`}>
+              <Icon name={scanProgress?.status === 'error' ? 'error' : 'manage_search'} size={40} className={scanProgress?.status === 'error' ? 'text-error' : 'text-primary'} />
             </div>
             <div className="space-y-1.5">
-              <p className="text-title-md text-surface-on">Ready to scan</p>
+              <p className="text-title-md text-surface-on">{scanProgress?.status === 'error' ? 'Scan failed' : 'Ready to scan'}</p>
               <p className="text-body-md text-surface-on-variant max-w-[240px]">
-                Looks for emails with unsubscribe options in your inbox.
+                {scanProgress?.status === 'error'
+                  ? (scanProgress.error ?? 'An error occurred during scanning. Try again.')
+                  : 'Looks for emails with unsubscribe options in your inbox.'}
               </p>
             </div>
             <Button

@@ -17,7 +17,22 @@ export function BulkActions() {
     ids.forEach((id) => optimisticUpdate(id, 'unsubscribed'));
     clearSelection();
     const res = await sendMessage({ type: 'UNSUBSCRIBE_BULK', payload: { subscriptionIds: ids } });
-    setResult(res.success ? `Unsubscribed from ${ids.length} sender${ids.length > 1 ? 's' : ''}` : 'Some failed — check individually');
+    if (!res.success) {
+      // Rollback all on total failure
+      ids.forEach((id) => optimisticUpdate(id, 'active'));
+      setResult('Bulk unsubscribe failed — items restored');
+    } else {
+      // Rollback individual failures
+      const results = (res.data ?? []) as Array<{ subscriptionId: string; success: boolean }>;
+      const failedIds = results.filter((r) => !r.success).map((r) => r.subscriptionId);
+      failedIds.forEach((id) => optimisticUpdate(id, 'active'));
+      const successCount = ids.length - failedIds.length;
+      setResult(
+        failedIds.length === 0
+          ? `Unsubscribed from ${successCount} sender${successCount > 1 ? 's' : ''}`
+          : `Unsubscribed from ${successCount}, ${failedIds.length} failed`
+      );
+    }
     setLoading(false);
     setTimeout(() => setResult(null), 5000);
   }

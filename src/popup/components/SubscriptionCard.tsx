@@ -21,6 +21,7 @@ const categoryIcon: Record<string, string> = {
 export function SubscriptionCard({ subscription: sub }: Props) {
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [toast, setToast] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
 
@@ -49,13 +50,13 @@ export function SubscriptionCard({ subscription: sub }: Props) {
       <div className="flex items-center gap-3 px-4 pt-3 pb-2">
         {/* Favicon in primary container circle */}
         <div className="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center shrink-0 overflow-hidden">
-          <img src={sub.faviconUrl} alt="" className="h-6 w-6 object-contain"
-            onError={(e) => {
-              const el = e.target as HTMLImageElement;
-              el.style.display = 'none';
-              el.parentElement!.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;color:#1A6DD4">${categoryIcon[sub.category] ?? 'mail'}</span>`;
-            }}
-          />
+          {imgError ? (
+            <Icon name={categoryIcon[sub.category] ?? 'mail'} size={20} className="text-primary" />
+          ) : (
+            <img src={sub.faviconUrl} alt="" className="h-6 w-6 object-contain"
+              onError={() => setImgError(true)}
+            />
+          )}
         </div>
 
         <div className="flex-1 min-w-0">

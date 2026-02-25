@@ -5,12 +5,12 @@ import { ScanStatus } from './components/ScanStatus';
 import { SubscriptionList } from './components/SubscriptionList';
 
 export function App() {
-  const { isAuthenticated, isScanning, hasScanData, auth, scanProgress, activeSubscriptions } =
+  const { isAuthenticated, isScanning, hasScanData, scanError, auth, scanProgress, activeSubscriptions } =
     useSubscriptions();
 
   if (!isAuthenticated) return <AuthScreen />;
 
-  if (isScanning || !hasScanData) {
+  if (isScanning || !hasScanData || scanError) {
     return (
       <ScanStatus
         userEmail={auth?.userEmail ?? ''}

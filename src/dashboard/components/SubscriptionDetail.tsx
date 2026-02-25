@@ -7,6 +7,7 @@ export function SubscriptionDetail() {
   const { detailId, subscriptions, closeDetail, optimisticUpdate } = useDashboardStore();
   const [actionState, setActionState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [toast, setToast] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   const sub = subscriptions.find((s) => s.id === detailId);
 
@@ -59,9 +60,13 @@ export function SubscriptionDetail() {
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-full bg-primary-container flex items-center justify-center shrink-0 overflow-hidden">
-                <img src={sub.faviconUrl} alt="" className="h-8 w-8 object-contain"
-                  onError={(e) => { const el = e.target as HTMLImageElement; el.style.display = 'none'; el.parentElement!.innerHTML = `<span class="material-symbols-outlined" style="font-size:28px;color:#1A6DD4">mail</span>`; }}
-                />
+                {imgError ? (
+                  <Icon name="mail" size={28} className="text-primary" />
+                ) : (
+                  <img src={sub.faviconUrl} alt="" className="h-8 w-8 object-contain"
+                    onError={() => setImgError(true)}
+                  />
+                )}
               </div>
               <div className="min-w-0">
                 <p className="text-title-lg text-surface-on truncate">{sub.senderName}</p>
