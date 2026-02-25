@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.pem
+.env
+.DS_Store
+.claude/
+ARCHITECTURE.md
