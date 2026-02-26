@@ -13,11 +13,12 @@ interface Props {
   onBack: () => void;
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (
     <button
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-8 w-[52px] shrink-0 items-center rounded-full transition-colors ${
         checked ? 'bg-primary' : 'bg-surface-container-highest'
@@ -57,6 +58,7 @@ export function SettingsPanel({ onBack }: Props) {
             <div className="text-body-sm text-surface-on-variant">Periodically check for new subscriptions</div>
           </div>
           <Toggle
+            label="Toggle auto-scan"
             checked={settings.autoScanEnabled}
             onChange={(v) => updateSettings({ autoScanEnabled: v })}
           />
@@ -96,6 +98,7 @@ export function SettingsPanel({ onBack }: Props) {
             <div className="text-body-sm text-surface-on-variant">Show active subscription count on icon</div>
           </div>
           <Toggle
+            label="Toggle badge count"
             checked={settings.showBadgeCount}
             onChange={(v) => updateSettings({ showBadgeCount: v })}
           />
@@ -137,6 +140,7 @@ export function SettingsPanel({ onBack }: Props) {
             <div className="text-body-sm text-surface-on-variant">Notify when new senders are detected</div>
           </div>
           <Toggle
+            label="Toggle notifications"
             checked={settings.notifyOnNewSubscriptions}
             onChange={(v) => updateSettings({ notifyOnNewSubscriptions: v })}
           />

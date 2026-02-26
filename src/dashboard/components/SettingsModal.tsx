@@ -14,11 +14,12 @@ interface Props {
   onClose: () => void;
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (
     <button
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-8 w-[52px] shrink-0 items-center rounded-full transition-colors ${
         checked ? 'bg-primary' : 'bg-surface-container-highest'
@@ -65,7 +66,7 @@ export function SettingsModal({ onClose }: Props) {
             <div className="text-body-lg text-surface-on">Auto-scan</div>
             <div className="text-body-sm text-surface-on-variant">Periodically check for new subscriptions</div>
           </div>
-          <Toggle checked={settings.autoScanEnabled} onChange={(v) => update({ autoScanEnabled: v })} />
+          <Toggle label="Toggle auto-scan" checked={settings.autoScanEnabled} onChange={(v) => update({ autoScanEnabled: v })} />
         </div>
 
         {settings.autoScanEnabled && (
@@ -101,7 +102,7 @@ export function SettingsModal({ onClose }: Props) {
             <div className="text-body-lg text-surface-on">Badge count</div>
             <div className="text-body-sm text-surface-on-variant">Show active subscription count on icon</div>
           </div>
-          <Toggle checked={settings.showBadgeCount} onChange={(v) => update({ showBadgeCount: v })} />
+          <Toggle label="Toggle badge count" checked={settings.showBadgeCount} onChange={(v) => update({ showBadgeCount: v })} />
         </div>
 
         <div className="px-6 py-3">
@@ -139,7 +140,7 @@ export function SettingsModal({ onClose }: Props) {
             <div className="text-body-lg text-surface-on">New subscriptions</div>
             <div className="text-body-sm text-surface-on-variant">Notify when new senders are detected</div>
           </div>
-          <Toggle checked={settings.notifyOnNewSubscriptions} onChange={(v) => update({ notifyOnNewSubscriptions: v })} />
+          <Toggle label="Toggle notifications" checked={settings.notifyOnNewSubscriptions} onChange={(v) => update({ notifyOnNewSubscriptions: v })} />
         </div>
       </div>
     </div>

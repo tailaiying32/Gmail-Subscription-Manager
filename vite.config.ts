@@ -5,6 +5,11 @@ import path from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
+  test: {
+    globals: true,
+    setupFiles: ['./tests/setup.ts'],
+    exclude: ['tests/e2e/**', 'node_modules/**'],
+  },
   plugins: [
     react(),
     viteStaticCopy({
