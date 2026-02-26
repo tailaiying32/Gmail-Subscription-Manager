@@ -3,6 +3,7 @@ import { FAVICON_URL } from '@shared/constants';
 import { emailToDomain, hashEmail } from '@shared/utils';
 import { parseListUnsubscribe, getHeader } from '../gmail/headerParser';
 import { upsertSubscription } from './store';
+import { getSettings } from '../settings/store';
 
 function parseFrom(fromHeader: string): { name: string; email: string } {
   // Handle: "Display Name <email@domain.com>" or bare "email@domain.com"
@@ -42,6 +43,8 @@ function classifySender(
 
 export class SubscriptionDetector {
   async processMessages(messages: GmailMessage[]): Promise<void> {
+    let newCount = 0;
+
     for (const message of messages) {
       const headers = message.payload?.headers ?? [];
 
@@ -78,7 +81,20 @@ export class SubscriptionDetector {
         faviconUrl: `${FAVICON_URL}?domain=${domain}&sz=32`,
       };
 
-      await upsertSubscription(sub);
+      const { isNew } = await upsertSubscription(sub);
+      if (isNew) newCount++;
+    }
+
+    if (newCount > 0) {
+      const settings = await getSettings();
+      if (settings.notifyOnNewSubscriptions) {
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('assets/icon-128.png'),
+          title: 'New Subscriptions Found',
+          message: `${newCount} new subscription${newCount === 1 ? '' : 's'} detected.`,
+        });
+      }
     }
   }
 }

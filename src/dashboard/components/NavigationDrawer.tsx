@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icon } from '../../components/md3';
 import { useDashboardStore } from '../store/dashboardStore';
 import type { SubscriptionCategory } from '../../shared/types';

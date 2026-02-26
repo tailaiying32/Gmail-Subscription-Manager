@@ -1,14 +1,23 @@
 import { create } from 'zustand';
-import type { Subscription, SubscriptionCategory, SubscriptionStatus } from '../../shared/types';
+import type { Subscription, SubscriptionCategory, SubscriptionStatus, UserSettings } from '../../shared/types';
 import { STORAGE_KEYS } from '../../shared/messages';
 
 type CategoryFilter = 'all' | SubscriptionCategory | 'whitelisted' | 'unsubscribed';
 type SortField = 'frequency' | 'recent' | 'oldest' | 'alphabetical';
 
+const DEFAULT_SETTINGS: UserSettings = {
+  theme: 'system',
+  autoScanEnabled: true,
+  scanFrequencyMinutes: 30,
+  showBadgeCount: true,
+  notifyOnNewSubscriptions: false,
+};
+
 interface DashboardStore {
   // Raw data
   subscriptions: Subscription[];
   selectedIds: Set<string>;
+  settings: UserSettings;
 
   // Filters
   activeCategory: CategoryFilter;
@@ -24,6 +33,7 @@ interface DashboardStore {
   // Actions
   loadFromStorage: () => Promise<void>;
   syncFromStorage: (map: Record<string, Subscription>) => void;
+  syncSettings: (settings: UserSettings) => void;
   toggleSelected: (id: string) => void;
   selectAll: () => void;
   clearSelection: () => void;
@@ -70,6 +80,7 @@ function applyFiltersAndSort(
 export const useDashboardStore = create<DashboardStore>((set, get) => ({
   subscriptions: [],
   selectedIds: new Set(),
+  settings: DEFAULT_SETTINGS,
   activeCategory: 'all',
   sortBy: 'frequency',
   searchQuery: '',
@@ -77,8 +88,10 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   filteredSubscriptions: [],
 
   loadFromStorage: async () => {
-    const result = await chrome.storage.local.get(STORAGE_KEYS.SUBSCRIPTIONS);
+    const result = await chrome.storage.local.get([STORAGE_KEYS.SUBSCRIPTIONS, STORAGE_KEYS.SETTINGS]);
     const map = (result[STORAGE_KEYS.SUBSCRIPTIONS] ?? {}) as Record<string, Subscription>;
+    const settings = (result[STORAGE_KEYS.SETTINGS] ?? DEFAULT_SETTINGS) as UserSettings;
+    set({ settings: { ...DEFAULT_SETTINGS, ...settings } });
     get().syncFromStorage(map);
   },
 
@@ -90,6 +103,8 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
       filteredSubscriptions: applyFiltersAndSort(subs, activeCategory, sortBy, searchQuery),
     });
   },
+
+  syncSettings: (settings) => set({ settings: { ...DEFAULT_SETTINGS, ...settings } }),
 
   toggleSelected: (id) => {
     const ids = new Set(get().selectedIds);

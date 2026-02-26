@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Icon, Button, IconButton, StatusChip } from '../../components/md3';
 import { useDashboardStore } from '../store/dashboardStore';
 import { sendMessage } from '../../hooks/useMessage';

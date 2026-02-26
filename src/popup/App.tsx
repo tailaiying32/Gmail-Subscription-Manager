@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSubscriptions } from '../hooks/useSubscriptions';
 import { AuthScreen } from './components/AuthScreen';
 import { ScanStatus } from './components/ScanStatus';

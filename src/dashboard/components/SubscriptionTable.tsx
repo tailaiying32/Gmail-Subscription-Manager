@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icon, LinearProgress } from '../../components/md3';
 import { useDashboardStore } from '../store/dashboardStore';
 import { SubscriptionRow } from './SubscriptionRow';

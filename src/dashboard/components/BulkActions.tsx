@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Button, Icon } from '../../components/md3';
+import { useState } from 'react';
+import { Button } from '../../components/md3';
 import { useDashboardStore } from '../store/dashboardStore';
 import { sendMessage } from '../../hooks/useMessage';
 

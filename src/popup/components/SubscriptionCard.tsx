@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Subscription } from '../../shared/types';
 import { Icon, Button, StatusChip } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';

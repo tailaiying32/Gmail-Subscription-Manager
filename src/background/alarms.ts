@@ -1,12 +1,13 @@
 import { INCREMENTAL_SYNC_ALARM } from '@shared/constants';
-import { handleMessage } from './messageHandler';
+import { getSettings } from './settings/store';
 
-export function registerAlarms(): void {
-  chrome.alarms.create(INCREMENTAL_SYNC_ALARM, { periodInMinutes: 30 });
+export async function registerAlarms(): Promise<void> {
+  await chrome.alarms.clear(INCREMENTAL_SYNC_ALARM);
 
-  chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === INCREMENTAL_SYNC_ALARM) {
-      handleMessage({ type: 'SCAN_START', payload: { fullScan: false } });
-    }
-  });
+  const settings = await getSettings();
+  if (settings.autoScanEnabled) {
+    chrome.alarms.create(INCREMENTAL_SYNC_ALARM, {
+      periodInMinutes: settings.scanFrequencyMinutes,
+    });
+  }
 }

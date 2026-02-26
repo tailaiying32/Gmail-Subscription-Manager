@@ -1,10 +1,12 @@
 import type { ExtensionMessage } from '@shared/messages';
+import { STORAGE_KEYS } from '@shared/messages';
+import { INCREMENTAL_SYNC_ALARM } from '@shared/constants';
 import { handleMessage } from './messageHandler';
 import { registerAlarms } from './alarms';
-import { STORAGE_KEYS } from '@shared/messages';
+import { getSettings } from './settings/store';
+import type { Subscription } from '@shared/types';
 
 // ─── Message listener ─────────────────────────────────────────────────────────
-// CRITICAL: return true to keep the sendResponse channel open for async handlers
 chrome.runtime.onMessage.addListener(
   (message: ExtensionMessage, _sender, sendResponse) => {
     handleMessage(message)
@@ -14,17 +16,36 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-// ─── Alarm registration on SW startup ────────────────────────────────────────
-registerAlarms();
-
-// ─── Badge count ──────────────────────────────────────────────────────────────
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes[STORAGE_KEYS.SUBSCRIPTIONS]) {
-    const subs = Object.values(
-      (changes[STORAGE_KEYS.SUBSCRIPTIONS].newValue ?? {}) as Record<string, { status: string }>
-    );
-    const activeCount = subs.filter((s) => s.status === 'active').length;
-    chrome.action.setBadgeText({ text: activeCount > 0 ? String(activeCount) : '' });
-    chrome.action.setBadgeBackgroundColor({ color: '#ef4444' });
+// ─── Alarm listener (registered once at module level) ─────────────────────────
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === INCREMENTAL_SYNC_ALARM) {
+    handleMessage({ type: 'SCAN_START', payload: { fullScan: false } });
   }
 });
+
+// ─── Badge logic ──────────────────────────────────────────────────────────────
+async function updateBadge(): Promise<void> {
+  const settings = await getSettings();
+  if (!settings.showBadgeCount) {
+    await chrome.action.setBadgeText({ text: '' });
+    return;
+  }
+
+  const result = await chrome.storage.local.get(STORAGE_KEYS.SUBSCRIPTIONS);
+  const subs = Object.values(
+    (result[STORAGE_KEYS.SUBSCRIPTIONS] ?? {}) as Record<string, Subscription>
+  );
+  const activeCount = subs.filter((s) => s.status === 'active').length;
+  await chrome.action.setBadgeText({ text: activeCount > 0 ? String(activeCount) : '' });
+  await chrome.action.setBadgeBackgroundColor({ color: '#ef4444' });
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && (changes[STORAGE_KEYS.SUBSCRIPTIONS] || changes[STORAGE_KEYS.SETTINGS])) {
+    updateBadge();
+  }
+});
+
+// ─── Cold start ───────────────────────────────────────────────────────────────
+registerAlarms();
+updateBadge();

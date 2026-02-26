@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Icon, IconButton } from '../../components/md3';
 import { useDashboardStore } from '../store/dashboardStore';
 import { sendMessage } from '../../hooks/useMessage';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
+import { SettingsModal } from './SettingsModal';
 
 type SortOption = { value: string; label: string; icon: string };
 
@@ -67,6 +68,7 @@ function SortMenu({ value, onChange }: { value: string; onChange: (v: string) =>
 export function TopAppBar() {
   const { searchQuery, setSearchQuery, sortBy, setSortBy } = useDashboardStore();
   const { auth } = useSubscriptions();
+  const [showSettings, setShowSettings] = useState(false);
 
   async function handleRescan() {
     await sendMessage({ type: 'SCAN_START', payload: { fullScan: true } });
@@ -95,6 +97,7 @@ export function TopAppBar() {
       <SortMenu value={sortBy} onChange={(v) => setSortBy(v as Parameters<typeof setSortBy>[0])} />
 
       <IconButton icon="refresh" label="Rescan inbox" onClick={handleRescan} />
+      <IconButton icon="settings" label="Settings" onClick={() => setShowSettings(true)} />
 
       {/* User avatar */}
       <div
@@ -103,6 +106,8 @@ export function TopAppBar() {
       >
         {auth?.userEmail?.[0]?.toUpperCase() ?? 'U'}
       </div>
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </header>
   );
 }

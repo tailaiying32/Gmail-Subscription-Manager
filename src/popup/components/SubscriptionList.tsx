@@ -1,17 +1,24 @@
-import React from 'react';
+import { useState } from 'react';
 import type { Subscription, ScanProgress } from '../../shared/types';
 import { Icon, IconButton } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';
 import { SubscriptionCard } from './SubscriptionCard';
+import { SettingsPanel } from './SettingsPanel';
 
 interface Props { userEmail: string; subscriptions: Subscription[]; scanProgress: ScanProgress | null }
 
-export function SubscriptionList({ userEmail, subscriptions, scanProgress }: Props) {
+export function SubscriptionList({ userEmail: _, subscriptions, scanProgress }: Props) {
+  const [showSettings, setShowSettings] = useState(false);
+
   async function handleSignOut() { await sendMessage({ type: 'AUTH_REVOKE' }); }
   async function handleRescan()  { await sendMessage({ type: 'SCAN_START', payload: { fullScan: true } }); }
 
   function openDashboard() {
     chrome.tabs.create({ url: chrome.runtime.getURL('src/dashboard/dashboard.html') });
+  }
+
+  if (showSettings) {
+    return <SettingsPanel onBack={() => setShowSettings(false)} />;
   }
 
   const lastScan = scanProgress?.lastCompletedAt
@@ -29,6 +36,7 @@ export function SubscriptionList({ userEmail, subscriptions, scanProgress }: Pro
           </div>
           <div className="flex items-center gap-1">
             <IconButton icon="refresh" label="Rescan" onClick={handleRescan} />
+            <IconButton icon="settings" label="Settings" onClick={() => setShowSettings(true)} />
             <IconButton icon="logout" label="Sign out" onClick={handleSignOut} />
           </div>
         </div>

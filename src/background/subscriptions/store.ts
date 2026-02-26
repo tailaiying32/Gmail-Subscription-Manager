@@ -10,7 +10,7 @@ async function saveAll(subs: Record<string, Subscription>): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEYS.SUBSCRIPTIONS]: subs });
 }
 
-export async function upsertSubscription(sub: Subscription): Promise<void> {
+export async function upsertSubscription(sub: Subscription): Promise<{ isNew: boolean }> {
   const all = await getAll();
   const existing = all[sub.id];
 
@@ -32,6 +32,7 @@ export async function upsertSubscription(sub: Subscription): Promise<void> {
   }
 
   await saveAll(all);
+  return { isNew: !existing };
 }
 
 export async function updateStatus(id: string, status: SubscriptionStatus): Promise<void> {

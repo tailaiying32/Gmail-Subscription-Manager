@@ -6,6 +6,8 @@ import { Scanner } from './gmail/scanner';
 import { executeUnsubscribe } from './actions/unsubscribe';
 import { archiveAll } from './actions/archive';
 import { updateStatus } from './subscriptions/store';
+import { patchSettings } from './settings/store';
+import { registerAlarms } from './alarms';
 import { STORAGE_KEYS } from '@shared/messages';
 
 let activeScan: Promise<void> | null = null;
@@ -97,6 +99,12 @@ export async function handleMessage(
       case 'WHITELIST_REMOVE': {
         await updateStatus(message.payload.subscriptionId, 'active');
         return { success: true, data: undefined };
+      }
+
+      case 'SETTINGS_UPDATE': {
+        const updated = await patchSettings(message.payload);
+        await registerAlarms();
+        return { success: true, data: updated };
       }
 
       default:

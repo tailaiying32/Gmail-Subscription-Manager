@@ -3,6 +3,7 @@ import type {
   ScanProgress,
   Subscription,
   UnsubscribeResult,
+  UserSettings,
 } from './types';
 
 // ─── Outbound messages (UI → Service Worker) ─────────────────────────────────
@@ -17,7 +18,8 @@ export type ExtensionMessage =
   | { type: 'UNSUBSCRIBE_BULK'; payload: { subscriptionIds: string[] } }
   | { type: 'ARCHIVE_ALL'; payload: { subscriptionId: string } }
   | { type: 'WHITELIST_ADD'; payload: { subscriptionId: string } }
-  | { type: 'WHITELIST_REMOVE'; payload: { subscriptionId: string } };
+  | { type: 'WHITELIST_REMOVE'; payload: { subscriptionId: string } }
+  | { type: 'SETTINGS_UPDATE'; payload: Partial<UserSettings> };
 
 // ─── Response types ───────────────────────────────────────────────────────────
 
@@ -34,6 +36,7 @@ export type UnsubscribeExecuteResponse = MessageResponse<UnsubscribeResult>;
 export type UnsubscribeBulkResponse = MessageResponse<UnsubscribeResult[]>;
 export type ArchiveAllResponse = MessageResponse<{ archivedCount: number }>;
 export type WhitelistResponse = MessageResponse<void>;
+export type SettingsUpdateResponse = MessageResponse<UserSettings>;
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, Icon } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';
 

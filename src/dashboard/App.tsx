@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { NavigationDrawer } from './components/NavigationDrawer';
 import { TopAppBar } from './components/TopAppBar';
 import { BulkActions } from './components/BulkActions';
@@ -6,24 +6,28 @@ import { SubscriptionTable } from './components/SubscriptionTable';
 import { SubscriptionDetail } from './components/SubscriptionDetail';
 import { useDashboardStore } from './store/dashboardStore';
 import { STORAGE_KEYS } from '../shared/messages';
-import type { Subscription } from '../shared/types';
+import type { Subscription, UserSettings } from '../shared/types';
 
 export function App() {
-  const { loadFromStorage, syncFromStorage } = useDashboardStore();
+  const { loadFromStorage, syncFromStorage, syncSettings } = useDashboardStore();
 
   useEffect(() => { loadFromStorage(); }, [loadFromStorage]);
 
   useEffect(() => {
     const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-      if (area === 'local' && changes[STORAGE_KEYS.SUBSCRIPTIONS]) {
+      if (area !== 'local') return;
+      if (changes[STORAGE_KEYS.SUBSCRIPTIONS]) {
         syncFromStorage(
           (changes[STORAGE_KEYS.SUBSCRIPTIONS].newValue ?? {}) as Record<string, Subscription>
         );
       }
+      if (changes[STORAGE_KEYS.SETTINGS]) {
+        syncSettings(changes[STORAGE_KEYS.SETTINGS].newValue as UserSettings);
+      }
     };
     chrome.storage.onChanged.addListener(listener);
     return () => chrome.storage.onChanged.removeListener(listener);
-  }, [syncFromStorage]);
+  }, [syncFromStorage, syncSettings]);
 
   return (
     // h-screen + overflow-hidden on the shell; scrolling happens inside SubscriptionTable only

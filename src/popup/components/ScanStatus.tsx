@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { ScanProgress } from '../../shared/types';
 import { Button, Icon, LinearProgress, IconButton } from '../../components/md3';
 import { sendMessage } from '../../hooks/useMessage';
